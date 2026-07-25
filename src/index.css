@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+/* ===========================
+   Rx Assistant AI Design System
+=========================== */
+
+:root {
+  --color-primary: #0D9488;
+  --color-primary-dark: #0F766E;
+
+  --color-secondary: #0891B2;
+
+  --color-success: #16A34A;
+
+  --color-warning: #F59E0B;
+
+  --color-danger: #DC2626;
+
+  --color-background: #F8FAFC;
+
+  --radius-card: 24px;
+
+  --shadow-card:
+    0 12px 40px rgba(15,23,42,.08);
+
+  --shadow-glass:
+    0 24px 60px rgba(15,23,42,.12);
+}
+
+/* Smooth scrolling */
+
+html{
+  scroll-behavior:smooth;
+}
+
+/* Body */
+
+body{
+  background:var(--color-background);
+  color:#0F172A;
+  font-family:Inter,sans-serif;
+}
