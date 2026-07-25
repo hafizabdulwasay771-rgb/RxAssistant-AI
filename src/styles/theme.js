@@ -1,4 +1,4 @@
-export const theme = {
+const theme = {
   colors: {
     primary: "#0D9488",
     primaryDark: "#0F766E",
@@ -13,11 +13,13 @@ export const theme = {
 
     background: "#F8FAFC",
 
-    white: "#FFFFFF",
+    surface: "#FFFFFF",
 
-    text: "#0F172A",
-
-    muted: "#64748B",
+    text: {
+      primary: "#0F172A",
+      secondary: "#64748B",
+      muted: "#94A3B8",
+    },
 
     border: "#E2E8F0",
   },
@@ -28,4 +30,16 @@ export const theme = {
     lg: "20px",
     xl: "32px",
   },
+
+  shadow: {
+    card: "0 10px 30px rgba(15,23,42,.08)",
+    glass: "0 20px 60px rgba(15,23,42,.12)",
+  },
+
+  spacing: {
+    section: "120px",
+    container: "1280px",
+  },
 };
+
+export default theme;

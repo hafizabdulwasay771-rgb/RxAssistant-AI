@@ -1,30 +1,45 @@
 import { Routes, Route } from "react-router-dom";
-
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import Dashboard from "./pages/Dashboard";
-import Inventory from "./pages/Inventory";
-import Sales from "./pages/Sales";
-import Analytics from "./pages/Analytics";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
+import PublicLayout from "./layouts/PublicLayout";
+import AuthLayout from "./layouts/AuthLayout";
+import Landing from "./pages/landing/Landing";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Inventory from "./pages/dashboard/Inventory";
+import Sales from "./pages/dashboard/Sales";
+import Analytics from "./pages/dashboard/Analytics";
+import Reports from "./pages/dashboard/Reports";
+import Settings from "./pages/dashboard/Settings";
 import NotFound from "./pages/NotFound";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route element={<PublicLayout />}>
+  <Route
+    path="/"
+    element={<Landing />}
+  />
+</Route>
+<Route element={<AuthLayout />}>
 
-      <Route path="/login" element={<Login />} />
+  <Route
+    path="/login"
+    element={<Login />}
+  />
 
-      <Route path="/register" element={<Register />} />
+  <Route
+    path="/register"
+    element={<Register />}
+  />
 
-      <Route
-        path="/forgot-password"
-        element={<ForgotPassword />}
-      />
+  <Route
+    path="/forgot-password"
+    element={<ForgotPassword />}
+  />
+
+</Route>
 
       <Route
         path="/dashboard"

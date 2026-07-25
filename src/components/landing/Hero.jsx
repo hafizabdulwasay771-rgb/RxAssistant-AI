@@ -1,3 +1,5 @@
+import Button from "@/components/ui/Button";
+import { PlayCircle } from "lucide-react";
 import DashboardPreview from "./DashboardPreview";
 import { Link } from "react-router-dom";
 
@@ -39,18 +41,21 @@ function Hero() {
 
           <div className="mt-12 flex gap-5">
 
-            <Link
-              to="/register"
-              className="rounded-xl bg-teal-600 px-7 py-4 text-white font-semibold hover:bg-teal-700 transition"
-            >
-              Start Free Trial
-            </Link>
+            <div className="mt-12 flex flex-wrap gap-5">
 
-            <button
-              className="rounded-xl border border-slate-300 px-7 py-4 font-semibold hover:bg-slate-100 transition"
-            >
-              Watch Demo
-            </button>
+  <Button size="lg">
+    Start Free Trial
+  </Button>
+
+  <Button
+    variant="secondary"
+    size="lg"
+    leftIcon={<PlayCircle size={20} />}
+  >
+    Watch Demo
+  </Button>
+
+</div>
 
           </div>
 
