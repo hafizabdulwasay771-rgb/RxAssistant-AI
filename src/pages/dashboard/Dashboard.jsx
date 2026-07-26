@@ -10,7 +10,8 @@ import {
 import KpiCard from "../../components/dashboard/KpiCard";
 import QuickAction from "../../components/dashboard/QuickAction";
 import RecentActivity from "../../components/dashboard/RecentActivity";
-
+import SalesChart from "../../components/dashboard/SalesChart";
+import LowStockTable from "../../components/dashboard/LowStockTable";
 function Dashboard() {
   return (
     <div className="space-y-8">
@@ -113,12 +114,16 @@ function Dashboard() {
 
             </div>
 
-          </div>
+                   </div>
+
+          {/* Sales Chart */}
+
+          <SalesChart />
+          <LowStockTable />
 
         </div>
 
         {/* Right Side */}
-
         <div>
 
           <RecentActivity />
