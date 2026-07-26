@@ -20,11 +20,23 @@ function MedicineForm({ onSubmit }) {
     });
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    onSubmit(formData);
-  }
+  async function handleSubmit(e) {
+  e.preventDefault();
 
+  await onSubmit(formData);
+
+  setFormData({
+    name: "",
+    category: "",
+    manufacturer: "",
+    batch_number: "",
+    expiry_date: "",
+    purchase_price: "",
+    selling_price: "",
+    quantity: "",
+    minimum_stock: "",
+  });
+}
   return (
     <form
       onSubmit={handleSubmit}
