@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-function MedicineForm({ onSubmit }) {
+function MedicineForm({
+  onSubmit,
+  medicine,
+  isEditing,
+}) {
   const [formData, setFormData] = useState({
+    
     name: "",
     category: "",
     manufacturer: "",
@@ -12,7 +17,21 @@ function MedicineForm({ onSubmit }) {
     quantity: "",
     minimum_stock: "",
   });
-
+useEffect(() => {
+  if (medicine) {
+    setFormData({
+      name: medicine.name || "",
+      category: medicine.category || "",
+      manufacturer: medicine.manufacturer || "",
+      batch_number: medicine.batch_number || "",
+      expiry_date: medicine.expiry_date || "",
+      purchase_price: medicine.purchase_price || "",
+      selling_price: medicine.selling_price || "",
+      quantity: medicine.quantity || "",
+      minimum_stock: medicine.minimum_stock || "",
+    });
+  }
+}, [medicine]);
   function handleChange(e) {
     setFormData({
       ...formData,
@@ -23,7 +42,10 @@ function MedicineForm({ onSubmit }) {
   async function handleSubmit(e) {
   e.preventDefault();
 
-  await onSubmit(formData);
+  await onSubmit({
+  ...formData,
+  id: medicine?.id,
+});
 
   setFormData({
     name: "",
@@ -36,7 +58,9 @@ function MedicineForm({ onSubmit }) {
     quantity: "",
     minimum_stock: "",
   });
+ 
 }
+
   return (
     <form
       onSubmit={handleSubmit}

@@ -4,6 +4,8 @@ function AddMedicineModal({
   open,
   onClose,
   onSubmit,
+  medicine,
+  isEditing,
 }) {
   if (!open) return null;
 
@@ -27,7 +29,11 @@ function AddMedicineModal({
 
         </div>
 
-        <MedicineForm onSubmit={onSubmit} />
+        <MedicineForm
+  onSubmit={onSubmit}
+  medicine={medicine}
+  isEditing={isEditing}
+/>
 
       </div>
 
