@@ -12,6 +12,8 @@ function Inventory() {
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
 const [openModal, setOpenModal] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+const [selectedDosageForm, setSelectedDosageForm] = useState("All");
 const [selectedMedicine, setSelectedMedicine] = useState(null);
 const [isEditing, setIsEditing] = useState(false);
   useEffect(() => {
@@ -38,8 +40,9 @@ async function handleAddMedicine(formData) {
         formData.id,
         {
           name: formData.name,
-          category: formData.category,
-          manufacturer: formData.manufacturer,
+dosage_form: formData.dosage_form,
+therapeutic_class: formData.therapeutic_class,
+manufacturer: formData.manufacturer,
           batch_number: formData.batch_number,
           expiry_date: formData.expiry_date,
           purchase_price: Number(formData.purchase_price),
@@ -52,9 +55,10 @@ async function handleAddMedicine(formData) {
     } else {
 
       await addMedicine({
-        name: formData.name,
-        category: formData.category,
-        manufacturer: formData.manufacturer,
+       name: formData.name,
+dosage_form: formData.dosage_form,
+therapeutic_class: formData.therapeutic_class,
+manufacturer: formData.manufacturer,
         batch_number: formData.batch_number,
         expiry_date: formData.expiry_date,
         purchase_price: Number(formData.purchase_price),
@@ -128,6 +132,31 @@ async function handleDelete(id) {
 
 </div>
 
+     <div className="flex justify-between items-center">
+
+  <select
+    value={selectedDosageForm}
+   onChange={(e) => setSelectedDosageForm(e.target.value)}
+    className="rounded-xl border border-slate-300 px-4 py-3"
+  >
+   <option value="All">All Dosage Forms</option>
+
+    {[...new Set(medicines.map((m) => m.dosage_form))].map((category) => (
+      <option key={category} value={category}>
+        {category}
+      </option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    placeholder="Search medicine..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-80 rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-teal-600"
+  />
+
+</div>
      <div className="rounded-2xl bg-white shadow border border-slate-200 overflow-x-auto">
 
         <table className="w-full">
@@ -140,10 +169,9 @@ async function handleDelete(id) {
       Medicine
     </th>
 
-    <th className="px-6 py-4 text-left font-semibold">
-      Category
-    </th>
+    <th className="p-4 text-left">Dosage Form</th>
 
+<th className="p-4 text-left">Therapeutic Class</th>
     <th className="px-6 py-4 text-left font-semibold">
       Manufacturer
     </th>
@@ -177,8 +205,18 @@ async function handleDelete(id) {
 </thead>
           <tbody>
 
-            {medicines.map((medicine) => (
-
+           {medicines
+  .filter((medicine) =>
+    medicine.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  )
+  .filter((medicine) =>
+    selectedDosageForm === "All"
+      ? true
+      : medicine.dosage_form === selectedDosageForm
+  )
+  .map((medicine) => (
               <tr
   key={medicine.id}
   className="border-t hover:bg-slate-50 transition"
@@ -189,8 +227,12 @@ async function handleDelete(id) {
   </td>
 
   <td className="px-6 py-4">
-    {medicine.category}
-  </td>
+  {medicine.dosage_form}
+</td>
+
+<td className="px-6 py-4">
+  {medicine.therapeutic_class}
+</td>
 
   <td className="px-6 py-4">
     {medicine.manufacturer}

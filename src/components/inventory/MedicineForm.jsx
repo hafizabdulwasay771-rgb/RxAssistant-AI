@@ -8,7 +8,8 @@ function MedicineForm({
   const [formData, setFormData] = useState({
     
     name: "",
-    category: "",
+   dosage_form: "",
+therapeutic_class: "",
     manufacturer: "",
     batch_number: "",
     expiry_date: "",
@@ -21,7 +22,8 @@ useEffect(() => {
   if (medicine) {
     setFormData({
       name: medicine.name || "",
-      category: medicine.category || "",
+    dosage_form: medicine.dosage_form || "",
+therapeutic_class: medicine.therapeutic_class || "",
       manufacturer: medicine.manufacturer || "",
       batch_number: medicine.batch_number || "",
       expiry_date: medicine.expiry_date || "",
@@ -47,18 +49,18 @@ useEffect(() => {
   id: medicine?.id,
 });
 
-  setFormData({
-    name: "",
-    category: "",
-    manufacturer: "",
-    batch_number: "",
-    expiry_date: "",
-    purchase_price: "",
-    selling_price: "",
-    quantity: "",
-    minimum_stock: "",
-  });
- 
+ setFormData({
+  name: "",
+  dosage_form: "",
+  therapeutic_class: "",
+  manufacturer: "",
+  batch_number: "",
+  expiry_date: "",
+  purchase_price: "",
+  selling_price: "",
+  quantity: "",
+  minimum_stock: "",
+});
 }
 
   return (
@@ -75,13 +77,21 @@ useEffect(() => {
         className="w-full rounded-lg border p-3"
       />
 
-      <input
-        name="category"
-        placeholder="Category"
-        onChange={handleChange}
-        value={formData.category}
-        className="w-full rounded-lg border p-3"
-      />
+     <input
+  name="dosage_form"
+  placeholder="Dosage Form (Tablet, Syrup, Capsule...)"
+  onChange={handleChange}
+  value={formData.dosage_form}
+  className="w-full rounded-lg border p-3"
+/>
+
+<input
+  name="therapeutic_class"
+  placeholder="Therapeutic Class (Antibiotic, Analgesic...)"
+  onChange={handleChange}
+  value={formData.therapeutic_class}
+  className="w-full rounded-lg border p-3"
+/>
 
       <input
         name="manufacturer"
