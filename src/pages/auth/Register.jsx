@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registerUser } from "../../services/authService";
 import { Eye, EyeOff } from "lucide-react";
 
 import Input from "../../components/ui/Input";
@@ -6,7 +7,67 @@ import Button from "../../components/ui/Button";
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
+const [formData, setFormData] = useState({
+  fullName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+});
 
+const [loading, setLoading] = useState(false);
+function handleChange(e) {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+}
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!formData.fullName.trim()) {
+    alert("Please enter your full name.");
+    return;
+  }
+
+  if (!formData.email.trim()) {
+    alert("Please enter your email.");
+    return;
+  }
+
+  if (!formData.password.trim()) {
+    alert("Please enter a password.");
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const { data, error } = await registerUser(
+      formData.email,
+      formData.password
+    );
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Registration successful! Please check your email.");
+
+    console.log(data);
+
+  } catch (err) {
+    alert("Something went wrong.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}
   return (
     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-10">
 
@@ -37,7 +98,10 @@ function Register() {
 
       {/* Form */}
 
-      <form className="space-y-6">
+      <form
+  className="space-y-6"
+  onSubmit={handleSubmit}
+>
 
         <div>
           <label className="block mb-2 text-sm font-medium text-slate-700">
@@ -45,8 +109,11 @@ function Register() {
           </label>
 
           <Input
-            placeholder="Enter your full name"
-          />
+  name="fullName"
+  value={formData.fullName}
+  onChange={handleChange}
+  placeholder="Enter your full name"
+/>
         </div>
 
         <div>
@@ -54,10 +121,13 @@ function Register() {
             Email Address
           </label>
 
-          <Input
-            type="email"
-            placeholder="Enter your email"
-          />
+         <Input
+  name="email"
+  type="email"
+  value={formData.email}
+  onChange={handleChange}
+  placeholder="Enter your email"
+/>
         </div>
 
         <div>
@@ -68,9 +138,12 @@ function Register() {
           <div className="relative">
 
             <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Create password"
-            />
+  name="password"
+  type={showPassword ? "text" : "password"}
+  value={formData.password}
+  onChange={handleChange}
+  placeholder="Create password"
+/>
 
             <button
               type="button"
@@ -93,9 +166,12 @@ function Register() {
           </label>
 
           <Input
-            type="password"
-            placeholder="Confirm password"
-          />
+  name="confirmPassword"
+  type="password"
+  value={formData.confirmPassword}
+  onChange={handleChange}
+  placeholder="Confirm password"
+/>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -106,9 +182,13 @@ function Register() {
 
         </label>
 
-        <Button fullWidth>
-          Create Account
-        </Button>
+        <Button
+  fullWidth
+  loading={loading}
+  type="submit"
+>
+  Create Account
+</Button>
 
       </form>
 

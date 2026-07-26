@@ -1,9 +1,61 @@
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { useState } from "react";
+import { loginUser } from "../../services/authService";
 import { Eye, EyeOff } from "lucide-react";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+  email: "",
+  password: "",
+});
+
+const [loading, setLoading] = useState(false);
+const navigate = useNavigate();
+function handleChange(e) {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+}
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!formData.email.trim()) {
+    alert("Please enter your email.");
+    return;
+  }
+
+  if (!formData.password.trim()) {
+    alert("Please enter your password.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const { data, error } = await loginUser(
+      formData.email,
+      formData.password
+    );
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    console.log(data);
+
+   navigate("/dashboard");
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+}
   return (
     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-10">
 
@@ -32,17 +84,22 @@ function Login() {
 
 </div>
 
-      <form className="space-y-6">
+      <form
+  className="space-y-6"
+  onSubmit={handleSubmit}
+>
 
   <div>
     <label className="block mb-2 text-sm font-medium text-slate-700">
       Email Address
     </label>
-
-    <Input
-      type="email"
-      placeholder="Enter your email"
-    />
+<Input
+  name="email"
+  type="email"
+  value={formData.email}
+  onChange={handleChange}
+  placeholder="Enter your email"
+/>
   </div>
 
   <div>
@@ -51,11 +108,13 @@ function Login() {
     </label>
 
     <div className="relative">
-
-  <Input
-    type={showPassword ? "text" : "password"}
-    placeholder="Enter your password"
-  />
+<Input
+  name="password"
+  type={showPassword ? "text" : "password"}
+  value={formData.password}
+  onChange={handleChange}
+  placeholder="Enter your password"
+/>
 
   <button
     type="button"
@@ -94,9 +153,13 @@ function Login() {
 
   </div>
 
-  <Button fullWidth>
-    Sign In
-  </Button>
+  <Button
+  fullWidth
+  loading={loading}
+  type="submit"
+>
+  Sign In
+</Button>
 
 </form>
       {/* Footer */}

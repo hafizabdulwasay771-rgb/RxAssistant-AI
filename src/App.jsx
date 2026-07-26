@@ -12,7 +12,8 @@ import Analytics from "./pages/dashboard/Analytics";
 import Reports from "./pages/dashboard/Reports";
 import Settings from "./pages/dashboard/Settings";
 import NotFound from "./pages/NotFound";
-
+import ProtectedRoute from "./routes/ProtectedRoute";
+import DashboardLayout from "./layouts/DashboardLayout";
 function App() {
   return (
     <Routes>
@@ -41,35 +42,43 @@ function App() {
 
 </Route>
 
-      <Route
-        path="/dashboard"
-        element={<Dashboard />}
-      />
+     <Route
+  element={
+    <ProtectedRoute>
+      <DashboardLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route
+    path="/dashboard"
+    element={<Dashboard />}
+  />
 
-      <Route
-        path="/inventory"
-        element={<Inventory />}
-      />
+  <Route
+    path="/inventory"
+    element={<Inventory />}
+  />
 
-      <Route
-        path="/sales"
-        element={<Sales />}
-      />
+  <Route
+    path="/sales"
+    element={<Sales />}
+  />
 
-      <Route
-        path="/analytics"
-        element={<Analytics />}
-      />
+  <Route
+    path="/analytics"
+    element={<Analytics />}
+  />
 
-      <Route
-        path="/reports"
-        element={<Reports />}
-      />
+  <Route
+    path="/reports"
+    element={<Reports />}
+  />
 
-      <Route
-        path="/settings"
-        element={<Settings />}
-      />
+  <Route
+    path="/settings"
+    element={<Settings />}
+  />
+</Route>
 
       <Route
         path="*"
