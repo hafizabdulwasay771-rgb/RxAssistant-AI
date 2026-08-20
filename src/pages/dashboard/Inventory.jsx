@@ -14,6 +14,7 @@ function Inventory() {
 const [openModal, setOpenModal] = useState(false);
 const [searchTerm, setSearchTerm] = useState("");
 const [selectedDosageForm, setSelectedDosageForm] = useState("All");
+const [selectedTherapeuticClass, setSelectedTherapeuticClass] = useState("All");
 const [selectedMedicine, setSelectedMedicine] = useState(null);
 const [isEditing, setIsEditing] = useState(false);
   useEffect(() => {
@@ -132,7 +133,7 @@ async function handleDelete(id) {
 
 </div>
 
-     <div className="flex justify-between items-center">
+     <div className="flex flex-wrap items-center justify-between gap-4">
 
   <select
     value={selectedDosageForm}
@@ -147,6 +148,21 @@ async function handleDelete(id) {
       </option>
     ))}
   </select>
+  <select
+  value={selectedTherapeuticClass}
+  onChange={(e) => setSelectedTherapeuticClass(e.target.value)}
+  className="rounded-xl border border-slate-300 px-4 py-3"
+>
+  <option value="All">All Therapeutic Classes</option>
+
+  {[...new Set(medicines.map((m) => m.therapeutic_class))]
+    .filter(Boolean)
+    .map((therapy) => (
+      <option key={therapy} value={therapy}>
+        {therapy}
+      </option>
+    ))}
+</select>
 
   <input
     type="text"
@@ -216,6 +232,11 @@ async function handleDelete(id) {
       ? true
       : medicine.dosage_form === selectedDosageForm
   )
+  .filter((medicine) =>
+  selectedTherapeuticClass === "All"
+    ? true
+    : medicine.therapeutic_class === selectedTherapeuticClass
+)
   .map((medicine) => (
               <tr
   key={medicine.id}

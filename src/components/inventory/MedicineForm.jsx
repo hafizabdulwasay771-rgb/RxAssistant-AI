@@ -91,7 +91,7 @@ therapeutic_class: medicine.therapeutic_class || "",
   onChange={handleChange}
   value={formData.therapeutic_class}
   className="w-full rounded-lg border p-3"
-/>
+/>cd D:\rxassistant
 
       <input
         name="manufacturer"
