@@ -1,77 +1,18 @@
-import {
-  Package,
-  ShoppingCart,
-  FileText,
-  RefreshCcw,
-} from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
+import EmptyState from "@/components/ui/EmptyState";
+import { formatCurrency } from "@/utils/medicine";
 
-const activities = [
-  {
-    icon: <Package size={18} />,
-    title: "Panadol added to inventory",
-    time: "5 minutes ago",
-    color: "bg-emerald-100 text-emerald-600",
-  },
-  {
-    icon: <ShoppingCart size={18} />,
-    title: "Sale completed (#10024)",
-    time: "18 minutes ago",
-    color: "bg-blue-100 text-blue-600",
-  },
-  {
-    icon: <RefreshCcw size={18} />,
-    title: "Stock updated for Augmentin",
-    time: "1 hour ago",
-    color: "bg-amber-100 text-amber-600",
-  },
-  {
-    icon: <FileText size={18} />,
-    title: "Monthly report generated",
-    time: "Today",
-    color: "bg-violet-100 text-violet-600",
-  },
-];
-
-function RecentActivity() {
+function RecentActivity({ sales }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-
-      <h2 className="mb-6 text-xl font-bold text-slate-900">
-        Recent Activity
-      </h2>
-
-      <div className="space-y-5">
-
-        {activities.map((activity, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-4"
-          >
-
-            <div
-              className={`h-11 w-11 rounded-xl flex items-center justify-center ${activity.color}`}
-            >
-              {activity.icon}
-            </div>
-
-            <div className="flex-1">
-
-              <p className="font-medium text-slate-800">
-                {activity.title}
-              </p>
-
-              <p className="text-sm text-slate-500">
-                {activity.time}
-              </p>
-
-            </div>
-
-          </div>
-        ))}
-
-      </div>
-
-    </div>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4"><div><h2 className="text-lg font-extrabold text-slate-900">Recent sales</h2><p className="mt-1 text-sm text-slate-500">Latest completed transactions.</p></div><Link to="/sales/history" className="text-sm font-bold text-teal-700 hover:underline">View all</Link></div>
+      {!sales?.length ? <div className="mt-4"><EmptyState icon={ShoppingCart} title="No recent sales" description="Sales activity will appear here after checkout." /></div> : (
+        <div className="mt-4 divide-y divide-slate-100">
+          {sales.map((sale) => <div key={sale.id} className="flex gap-3 py-3"><span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-700"><ShoppingCart size={17} /></span><div className="min-w-0 flex-1"><div className="flex justify-between gap-3"><p className="truncate font-bold text-slate-800">{sale.invoice_number}</p><p className="shrink-0 text-sm font-bold text-slate-800">{formatCurrency(sale.total)}</p></div><p className="mt-1 text-xs text-slate-500">{sale.customer_name || "Walk-in customer"} · {new Date(sale.created_at).toLocaleString()}</p></div></div>)}
+        </div>
+      )}
+    </section>
   );
 }
 

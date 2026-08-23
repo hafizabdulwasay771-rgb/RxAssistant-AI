@@ -1,83 +1,9 @@
-import { Bell, Search } from "lucide-react";
-
-function Topbar() {
-  return (
-    <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-
-      {/* Left */}
-
-      <div>
-
-        <h1 className="text-2xl font-bold text-slate-900">
-          Dashboard
-        </h1>
-
-        <p className="text-sm text-slate-500">
-          Welcome back 👋
-        </p>
-
-      </div>
-
-      {/* Center */}
-
-      <div className="hidden lg:block">
-
-        <div className="relative">
-
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Search medicines..."
-            className="w-80 rounded-xl border border-slate-300 py-3 pl-11 pr-4 outline-none focus:border-teal-500"
-          />
-
-        </div>
-
-      </div>
-
-      {/* Right */}
-
-      <div className="flex items-center gap-6">
-
-        <button className="relative">
-
-          <Bell
-            size={22}
-            className="text-slate-600"
-          />
-
-          <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
-
-        </button>
-
-        <div className="flex items-center gap-3">
-
-          <div className="h-11 w-11 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold">
-            A
-          </div>
-
-          <div className="hidden md:block">
-
-            <p className="font-semibold text-slate-800">
-              Admin
-            </p>
-
-            <p className="text-xs text-slate-500">
-              Pharmacy Owner
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </header>
-  );
-}
-
+import { useEffect, useState } from "react";
+import { Menu } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { getCurrentProfile } from "@/services/appService";
+import UserMenu from "@/components/dashboard/UserMenu";
+import AlertsPanel from "@/components/dashboard/AlertsPanel";
+const titles = { "/dashboard": ["Dashboard", "Your pharmacy at a glance"], "/inventory": ["Inventory", "Manage medicine batches and stock"], "/sales": ["Sales / POS", "Create safe, traceable medicine sales"], "/sales/history": ["Sales history", "Review invoices and completed transactions"], "/analytics": ["Analytics", "Business performance using real records"], "/reports": ["Reports", "Preview and export operational reports"], "/settings": ["Settings", "Pharmacy profile and operational preferences"] };
+function Topbar({ onMenu }) { const location = useLocation(); const [profile, setProfile] = useState(null); const [title, subtitle] = titles[location.pathname] || ["Rx Assistant", "Pharmacy operations"]; useEffect(() => { getCurrentProfile().then(setProfile).catch(() => setProfile(null)); }, []); return <header className="sticky top-0 z-20 flex h-18 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex min-w-0 items-center gap-3"><button onClick={onMenu} className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Open navigation"><Menu size={21} /></button><div className="min-w-0"><h1 className="truncate text-lg font-extrabold text-slate-900 sm:text-xl">{title}</h1><p className="hidden truncate text-xs text-slate-500 sm:block">{subtitle}</p></div></div><div className="flex items-center gap-1 sm:gap-3"><AlertsPanel /><UserMenu profile={profile} /></div></header>; }
 export default Topbar;

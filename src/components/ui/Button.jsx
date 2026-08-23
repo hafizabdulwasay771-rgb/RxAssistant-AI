@@ -1,5 +1,13 @@
 import { Loader2 } from "lucide-react";
 
+const variants = {
+  primary: "bg-teal-600 text-white hover:bg-teal-700 focus-visible:ring-teal-300",
+  secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-300",
+  danger: "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
+  ghost: "text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-300",
+};
+const sizes = { sm: "px-3 py-2 text-sm", md: "px-4 py-2.5 text-sm", lg: "px-5 py-3 text-base" };
+
 function Button({
   children,
   variant = "primary",
@@ -12,81 +20,24 @@ function Button({
   type = "button",
   onClick,
   className = "",
+  as: Component = "button",
+  ...props
 }) {
-  const baseStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    border: "none",
-    cursor: disabled || loading ? "not-allowed" : "pointer",
-    transition: "all .3s ease",
-    fontWeight: 600,
-    borderRadius: "var(--radius-md)",
-    opacity: disabled || loading ? 0.6 : 1,
-    width: fullWidth ? "100%" : "auto",
+  const sharedProps = {
+    disabled: disabled || loading,
+    onClick,
+    className: `inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`,
+    ...props,
   };
 
-  const variants = {
-    primary: {
-      background: "var(--color-primary)",
-      color: "#fff",
-    },
-
-    secondary: {
-      background: "#fff",
-      color: "var(--color-text)",
-      border: "1px solid var(--color-border)",
-    },
-
-    danger: {
-      background: "var(--color-danger)",
-      color: "#fff",
-    },
-  };
-
-  const sizes = {
-    sm: {
-      padding: "10px 18px",
-      fontSize: "14px",
-    },
-
-    md: {
-      padding: "14px 26px",
-      fontSize: "16px",
-    },
-
-    lg: {
-      padding: "18px 34px",
-      fontSize: "18px",
-    },
-  };
+  if (Component === "button") sharedProps.type = type;
 
   return (
-    <button
-      type={type}
-      disabled={disabled || loading}
-      onClick={onClick}
-      style={{
-        ...baseStyle,
-        ...variants[variant],
-        ...sizes[size],
-      }}
-      className={className}
-    >
-      {loading ? (
-        <Loader2
-          size={18}
-          className="animate-spin"
-        />
-      ) : (
-        leftIcon
-      )}
-
+    <Component {...sharedProps}>
+      {loading ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : leftIcon}
       {children}
-
       {!loading && rightIcon}
-    </button>
+    </Component>
   );
 }
 

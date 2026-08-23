@@ -1,184 +1,41 @@
-import { useNavigate } from "react-router-dom";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
 import { useState } from "react";
-import { loginUser } from "../../services/authService";
-import { Eye, EyeOff } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, LockKeyhole } from "lucide-react";
+import toast from "react-hot-toast";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import { loginUser } from "@/services/authService";
+import { friendlyError } from "@/utils/errors";
+
+function AuthBrand({ title, children }) {
+  return <div className="mb-8 text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-600 text-lg font-bold text-white shadow-lg shadow-teal-600/20">Rx</div><h1 className="text-2xl font-extrabold text-slate-900">{title}</h1><p className="mt-2 text-sm leading-6 text-slate-500">{children}</p></div>;
+}
+
 function Login() {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-  email: "",
-  password: "",
-});
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
-const [loading, setLoading] = useState(false);
-const navigate = useNavigate();
-function handleChange(e) {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  });
-}
-async function handleSubmit(e) {
-  e.preventDefault();
-
-  if (!formData.email.trim()) {
-    alert("Please enter your email.");
-    return;
-  }
-
-  if (!formData.password.trim()) {
-    alert("Please enter your password.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const { data, error } = await loginUser(
-      formData.email,
-      formData.password
-    );
-
-    if (error) {
-      alert(error.message);
-      return;
+  async function submit(event) {
+    event.preventDefault();
+    if (!form.email.trim() || !form.password) return toast.error("Enter your email address and password.");
+    try {
+      setLoading(true);
+      const { error } = await loginUser(form.email.trim(), form.password);
+      if (error) throw error;
+      toast.success("Welcome back.");
+      navigate(location.state?.from || "/dashboard", { replace: true });
+    } catch (loginError) {
+      toast.error(friendlyError(loginError));
+    } finally {
+      setLoading(false);
     }
-
-    console.log(data);
-
-   navigate("/dashboard");
-
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong.");
-  } finally {
-    setLoading(false);
   }
-}
-  return (
-    <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-10">
 
-      {/* Header */}
-
-<div className="text-center mb-10">
-
-  <div className="flex justify-center mb-5">
-
-    <div className="h-16 w-16 rounded-2xl bg-teal-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-      Rx
-    </div>
-
-  </div>
-
-  <h1 className="text-3xl font-bold text-slate-900">
-    Welcome Back
-  </h1>
-
-  <p className="mt-3 text-slate-500 leading-relaxed">
-    Sign in to manage your pharmacy with
-    <span className="font-semibold text-teal-600">
-      {" "}Rx Assistant AI
-    </span>
-  </p>
-
-</div>
-
-      <form
-  className="space-y-6"
-  onSubmit={handleSubmit}
->
-
-  <div>
-    <label className="block mb-2 text-sm font-medium text-slate-700">
-      Email Address
-    </label>
-<Input
-  name="email"
-  type="email"
-  value={formData.email}
-  onChange={handleChange}
-  placeholder="Enter your email"
-/>
-  </div>
-
-  <div>
-    <label className="block mb-2 text-sm font-medium text-slate-700">
-      Password
-    </label>
-
-    <div className="relative">
-<Input
-  name="password"
-  type={showPassword ? "text" : "password"}
-  value={formData.password}
-  onChange={handleChange}
-  placeholder="Enter your password"
-/>
-
-  <button
-    type="button"
-    onClick={() => setShowPassword(!showPassword)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-teal-600 font-medium"
-  >
-    {showPassword ? (
-  <EyeOff size={18} />
-) : (
-  <Eye size={18} />
-)}
-  </button>
-
-</div>
-  </div>
-
-  <div className="flex items-center justify-between">
-
-    <label className="flex items-center gap-2 text-sm text-slate-600">
-
-      <input
-        type="checkbox"
-        className="rounded border-slate-300"
-      />
-
-      Remember Me
-
-    </label>
-
-    <a
-      href="/forgot-password"
-      className="text-sm font-medium text-teal-600 hover:underline"
-    >
-      Forgot Password?
-    </a>
-
-  </div>
-
-  <Button
-  fullWidth
-  loading={loading}
-  type="submit"
->
-  Sign In
-</Button>
-
-</form>
-      {/* Footer */}
-
-      <div className="mt-8 text-center text-sm text-slate-600">
-
-        Don't have an account?{" "}
-
-        <a
-          href="/register"
-          className="text-teal-600 font-semibold hover:underline"
-        >
-          Create Account
-        </a>
-
-      </div>
-
-    </div>
-  );
+  return <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-10"><AuthBrand title="Welcome back">Sign in to manage your pharmacy with <span className="font-semibold text-teal-600">Rx Assistant AI</span>.</AuthBrand><form className="space-y-5" onSubmit={submit}><Input id="login-email" label="Email address" name="email" type="email" autoComplete="email" value={form.email} onChange={update} placeholder="you@pharmacy.com" required /><div className="relative"><Input id="login-password" label="Password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={form.password} onChange={update} placeholder="Enter your password" required /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((value) => !value)} className="absolute bottom-2.5 right-3 rounded p-1 text-slate-400 hover:text-teal-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><div className="flex justify-end"><Link to="/forgot-password" className="text-sm font-semibold text-teal-700 hover:underline">Forgot password?</Link></div><Button type="submit" fullWidth loading={loading} leftIcon={<LockKeyhole size={17} />}>Sign in</Button></form><p className="mt-7 text-center text-sm text-slate-600">New to Rx Assistant? <Link to="/register" className="font-bold text-teal-700 hover:underline">Create an account</Link></p></div>;
 }
 
 export default Login;

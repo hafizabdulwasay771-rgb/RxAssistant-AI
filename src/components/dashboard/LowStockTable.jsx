@@ -1,96 +1,17 @@
-const medicines = [
-  {
-    name: "Panadol",
-    stock: 8,
-    status: "Low",
-  },
-  {
-    name: "Augmentin",
-    stock: 5,
-    status: "Critical",
-  },
-  {
-    name: "Vitamin C",
-    stock: 11,
-    status: "Low",
-  },
-  {
-    name: "Paracetamol",
-    stock: 3,
-    status: "Critical",
-  },
-];
+import { Link } from "react-router-dom";
+import Badge from "@/components/ui/Badge";
+import EmptyState from "@/components/ui/EmptyState";
 
-function LowStockTable() {
+function LowStockTable({ items }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-
-      <h2 className="mb-6 text-xl font-bold text-slate-900">
-        Low Stock Medicines
-      </h2>
-
-      <table className="w-full">
-
-        <thead>
-
-          <tr className="border-b border-slate-200 text-left">
-
-            <th className="pb-3 font-semibold text-slate-700">
-              Medicine
-            </th>
-
-            <th className="pb-3 font-semibold text-slate-700">
-              Stock
-            </th>
-
-            <th className="pb-3 font-semibold text-slate-700">
-              Status
-            </th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          {medicines.map((medicine, index) => (
-
-            <tr
-              key={index}
-              className="border-b border-slate-100"
-            >
-
-              <td className="py-4 font-medium">
-                {medicine.name}
-              </td>
-
-              <td className="py-4">
-                {medicine.stock}
-              </td>
-
-              <td className="py-4">
-
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    medicine.status === "Critical"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-amber-100 text-amber-600"
-                  }`}
-                >
-                  {medicine.status}
-                </span>
-
-              </td>
-
-            </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
-    </div>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-extrabold text-slate-900">Low-stock medicines</h2><p className="mt-1 text-sm text-slate-500">Batches needing replenishment attention.</p></div><Link to="/inventory" className="text-sm font-bold text-teal-700 hover:underline">Inventory</Link></div>
+      {!items?.length ? <div className="mt-4"><EmptyState title="Stock levels look healthy" description="Low-stock batches will appear here when attention is needed." /></div> : (
+        <div className="mt-4 divide-y divide-slate-100">
+          {items.map(({ medicine, status }) => <div key={medicine.id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate font-bold text-slate-800">{medicine.name}</p><p className="mt-0.5 text-xs text-slate-500">Batch {medicine.batch_number} · Min {medicine.minimum_stock}</p></div><div className="flex shrink-0 items-center gap-3"><span className="font-bold text-slate-800">{medicine.quantity}</span><Badge tone={status.key === "out_of_stock" ? "red" : "amber"}>{status.label}</Badge></div></div>)}
+        </div>
+      )}
+    </section>
   );
 }
 

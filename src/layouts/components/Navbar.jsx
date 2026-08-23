@@ -1,68 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-
-function Navbar() {
-  return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
-
-        {/* Logo */}
-
-        <Link
-          to="/"
-          className="text-3xl font-extrabold text-teal-600 tracking-tight"
-        >
-          Rx Assistant AI
-        </Link>
-
-        {/* Navigation */}
-
-        <nav className="hidden md:flex items-center gap-10 text-slate-700 font-medium">
-
-          <a href="#home" className="hover:text-teal-600 transition">
-            Home
-          </a>
-
-          <a href="#features" className="hover:text-teal-600 transition">
-            Features
-          </a>
-
-          <a href="#ai" className="hover:text-teal-600 transition">
-            AI
-          </a>
-
-          <a href="#pricing" className="hover:text-teal-600 transition">
-            Pricing
-          </a>
-
-          <a href="#contact" className="hover:text-teal-600 transition">
-            Contact
-          </a>
-
-        </nav>
-
-        {/* Right Side */}
-
-        <div className="flex items-center gap-4">
-
-          <Link
-            to="/login"
-            className="font-semibold text-slate-700 hover:text-teal-600 transition"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/register"
-            className="rounded-xl bg-teal-600 px-6 py-3 text-white font-semibold hover:bg-teal-700 transition"
-          >
-            Get Started
-          </Link>
-
-        </div>
-
-      </div>
-    </header>
-  );
-}
-
+import { Menu, X } from "lucide-react";
+import Button from "@/components/ui/Button";
+const links = [{ label: "Features", href: "/#features" }, { label: "Product", href: "/#dashboard-preview" }, { label: "Automation", href: "/#automation" }, { label: "Contact", href: "/#contact" }];
+function Navbar() { const [open, setOpen] = useState(false); return <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur"><div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 sm:px-8"><Link to="/" className="flex items-center gap-2.5 font-extrabold tracking-tight text-slate-900"><span className="grid h-9 w-9 place-items-center rounded-xl bg-teal-600 text-sm text-white">Rx</span><span>Rx Assistant <span className="text-teal-600">AI</span></span></Link><nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">{links.map((link) => <a key={link.href} href={link.href} className="transition hover:text-teal-700">{link.label}</a>)}</nav><div className="hidden items-center gap-3 md:flex"><Link to="/login" className="px-3 py-2 text-sm font-bold text-slate-700 hover:text-teal-700">Sign in</Link><Link to="/register"><Button size="sm">Start free</Button></Link></div><button onClick={() => setOpen((value) => !value)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden" aria-label="Toggle navigation">{open ? <X /> : <Menu />}</button></div>{open && <div className="border-t border-slate-100 bg-white px-5 py-4 md:hidden"><nav className="flex flex-col gap-1">{links.map((link) => <a onClick={() => setOpen(false)} key={link.href} href={link.href} className="rounded-lg px-3 py-2.5 font-semibold text-slate-700 hover:bg-slate-50">{link.label}</a>)}<Link onClick={() => setOpen(false)} to="/login" className="rounded-lg px-3 py-2.5 font-semibold text-teal-700">Sign in</Link></nav></div>}</header>; }
 export default Navbar;

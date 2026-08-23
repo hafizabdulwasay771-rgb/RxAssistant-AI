@@ -1,9 +1,3 @@
-function Footer() {
-  return (
-    <footer className="border-t border-gray-200 py-8 text-center text-gray-500">
-      <p>© 2026 Rx Assistant AI. All rights reserved.</p>
-    </footer>
-  );
-}
-
+import { Link } from "react-router-dom";
+function Footer() { return <footer id="contact" className="border-t border-slate-200 bg-white"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]"><div><div className="flex items-center gap-2 font-extrabold text-slate-900"><span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-600 text-xs text-white">Rx</span>Rx Assistant AI</div><p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">One intelligent system for thoughtful, reliable pharmacy operations.</p></div><div><h2 className="text-sm font-bold text-slate-900">Product</h2><div className="mt-3 space-y-2 text-sm text-slate-500"><a href="/#features" className="block hover:text-teal-700">Features</a><Link to="/register" className="block hover:text-teal-700">Start free</Link><Link to="/login" className="block hover:text-teal-700">Sign in</Link></div></div><div><h2 className="text-sm font-bold text-slate-900">Built for what’s next</h2><p className="mt-3 text-sm leading-6 text-slate-500">AI and n8n automation are prepared as an opt-in future layer—without making promises ahead of delivery.</p></div></div><div className="border-t border-slate-100 py-5 text-center text-sm text-slate-500">© {new Date().getFullYear()} Rx Assistant AI. Pharmacy operations, simplified.</div></footer>; }
 export default Footer;

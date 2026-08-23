@@ -1,20 +1,14 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Navigate, useLocation } from "react-router-dom";
+import Loader from "@/components/ui/Loader";
+import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
+  if (loading) return <Loader fullScreen label="Restoring your session…" />;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
   return children;
 }

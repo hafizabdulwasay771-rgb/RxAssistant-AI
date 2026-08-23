@@ -1,90 +1,49 @@
-import { Routes, Route } from "react-router-dom";
-import PublicLayout from "./layouts/PublicLayout";
-import AuthLayout from "./layouts/AuthLayout";
-import Landing from "./pages/landing/Landing";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import Dashboard from "./pages/dashboard/Dashboard";
-import Inventory from "./pages/dashboard/Inventory";
-import Sales from "./pages/dashboard/Sales";
-import Analytics from "./pages/dashboard/Analytics";
-import Reports from "./pages/dashboard/Reports";
-import Settings from "./pages/dashboard/Settings";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./routes/ProtectedRoute";
-import DashboardLayout from "./layouts/DashboardLayout";
+import { lazy, Suspense } from "react";
+import { Route, Routes } from "react-router-dom";
+import Loader from "@/components/ui/Loader";
+import PublicLayout from "@/layouts/PublicLayout";
+import AuthLayout from "@/layouts/AuthLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import ProtectedRoute from "@/routes/ProtectedRoute";
+import GuestRoute from "@/routes/GuestRoute";
+
+const Landing = lazy(() => import("@/pages/landing/Landing"));
+const Login = lazy(() => import("@/pages/auth/Login"));
+const Register = lazy(() => import("@/pages/auth/Register"));
+const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
+const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
+const Inventory = lazy(() => import("@/pages/dashboard/Inventory"));
+const Sales = lazy(() => import("@/pages/dashboard/Sales"));
+const SalesHistory = lazy(() => import("@/pages/dashboard/SalesHistory"));
+const Analytics = lazy(() => import("@/pages/dashboard/Analytics"));
+const Reports = lazy(() => import("@/pages/dashboard/Reports"));
+const Settings = lazy(() => import("@/pages/dashboard/Settings"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
 function App() {
   return (
-    <Routes>
-      <Route element={<PublicLayout />}>
-  <Route
-    path="/"
-    element={<Landing />}
-  />
-</Route>
-<Route element={<AuthLayout />}>
-
-  <Route
-    path="/login"
-    element={<Login />}
-  />
-
-  <Route
-    path="/register"
-    element={<Register />}
-  />
-
-  <Route
-    path="/forgot-password"
-    element={<ForgotPassword />}
-  />
-
-</Route>
-
-     <Route
-  element={
-    <ProtectedRoute>
-      <DashboardLayout />
-    </ProtectedRoute>
-  }
->
-  <Route
-    path="/dashboard"
-    element={<Dashboard />}
-  />
-
-  <Route
-    path="/inventory"
-    element={<Inventory />}
-  />
-
-  <Route
-    path="/sales"
-    element={<Sales />}
-  />
-
-  <Route
-    path="/analytics"
-    element={<Analytics />}
-  />
-
-  <Route
-    path="/reports"
-    element={<Reports />}
-  />
-
-  <Route
-    path="/settings"
-    element={<Settings />}
-  />
-</Route>
-
-      <Route
-        path="*"
-        element={<NotFound />}
-      />
-    </Routes>
+    <Suspense fallback={<Loader fullScreen label="Loading workspace…" />}>
+      <Routes>
+        <Route element={<PublicLayout />}><Route path="/" element={<Landing />} /></Route>
+        <Route element={<GuestRoute><AuthLayout /></GuestRoute>}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/sales/history" element={<SalesHistory />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 

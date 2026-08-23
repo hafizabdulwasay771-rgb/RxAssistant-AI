@@ -1,19 +1,33 @@
 import { supabase } from "@/lib/supabase";
 
-export async function registerUser(email, password) {
-  return await supabase.auth.signUp({
+export function registerUser({ email, password, fullName, pharmacyName }) {
+  return supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        full_name: fullName,
+        pharmacy_name: pharmacyName || "My Pharmacy",
+      },
+      emailRedirectTo: `${window.location.origin}/login`,
+    },
   });
 }
 
-export async function loginUser(email, password) {
-  return await supabase.auth.signInWithPassword({
-    email,
-    password,
+export function loginUser(email, password) {
+  return supabase.auth.signInWithPassword({ email, password });
+}
+
+export function logoutUser() {
+  return supabase.auth.signOut();
+}
+
+export function sendPasswordReset(email) {
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
   });
 }
 
-export async function logoutUser() {
-  return await supabase.auth.signOut();
+export function updatePassword(password) {
+  return supabase.auth.updateUser({ password });
 }

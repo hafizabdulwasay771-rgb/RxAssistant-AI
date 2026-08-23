@@ -1,48 +1,63 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
-// Get all medicines
-export async function getMedicines() {
-  const { data, error } = await supabase
+const editableFields = [
+  "name", "generic_name", "dosage_form", "strength", "therapeutic_class",
+  "manufacturer", "batch_number", "expiry_date", "purchase_price", "selling_price",
+  "quantity", "minimum_stock", "supplier", "status",
+];
+
+function pickEditable(values) {
+  return Object.fromEntries(
+    editableFields
+      .filter((field) => values[field] !== undefined)
+      .map((field) => [field, values[field] === "" ? null : values[field]]),
+  );
+}
+
+export async function getMedicines({ includeArchived = false } = {}) {
+  let query = supabase
     .from("medicines")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (!includeArchived) query = query.neq("status", "archived");
 
-  return data;
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
 }
 
-// Add a medicine
 export async function addMedicine(medicine) {
   const { data, error } = await supabase
     .from("medicines")
-    .insert([medicine])
-    .select();
+    .insert(pickEditable(medicine))
+    .select()
+    .single();
 
   if (error) throw error;
-
   return data;
 }
 
-// Update medicine
 export async function updateMedicine(id, updates) {
   const { data, error } = await supabase
     .from("medicines")
-    .update(updates)
+    .update(pickEditable(updates))
     .eq("id", id)
-    .select();
+    .select()
+    .single();
 
   if (error) throw error;
-
   return data;
 }
 
-// Delete medicine
-export async function deleteMedicine(id) {
-  const { error } = await supabase
+export async function archiveMedicine(id) {
+  const { data, error } = await supabase
     .from("medicines")
-    .delete()
-    .eq("id", id);
+    .update({ status: "archived" })
+    .eq("id", id)
+    .select()
+    .single();
 
   if (error) throw error;
+  return data;
 }
