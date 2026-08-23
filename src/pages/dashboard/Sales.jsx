@@ -7,17 +7,16 @@ function Sales() {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    loadMedicines();
-  }, []);
-
-  async function loadMedicines() {
-    try {
-      const data = await getMedicines();
-      setMedicines(data);
-    } catch (error) {
-      console.error(error);
+    async function load() {
+      try {
+        const data = await getMedicines();
+        setMedicines(data);
+      } catch (error) {
+        console.error(error);
+      }
     }
-  }
+    load();
+  }, []);
 
   function addToCart(medicine) {
     const existing = cart.find(
@@ -275,3 +274,5 @@ function removeFromCart(id) {
 }
 
 export default Sales;
+
+

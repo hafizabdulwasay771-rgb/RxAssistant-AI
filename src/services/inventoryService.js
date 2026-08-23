@@ -2,8 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 const editableFields = [
   "name", "generic_name", "dosage_form", "strength", "therapeutic_class",
-  "manufacturer", "batch_number", "expiry_date", "purchase_price", "selling_price",
-  "quantity", "minimum_stock", "supplier", "status",
+  "manufacturer", "selling_price", "minimum_stock", "supplier", "status",
 ];
 
 function pickEditable(values) {
@@ -27,12 +26,24 @@ export async function getMedicines({ includeArchived = false } = {}) {
   return data || [];
 }
 
-export async function addMedicine(medicine) {
-  const { data, error } = await supabase
-    .from("medicines")
-    .insert(pickEditable(medicine))
-    .select()
-    .single();
+export async function receiveStock(receipt) {
+  const { data, error } = await supabase.rpc("receive_stock", {
+    p_name: receipt.name,
+    p_generic_name: receipt.generic_name || null,
+    p_dosage_form: receipt.dosage_form,
+    p_strength: receipt.strength || null,
+    p_therapeutic_class: receipt.therapeutic_class || null,
+    p_manufacturer: receipt.manufacturer,
+    p_batch_number: receipt.batch_number,
+    p_expiry_date: receipt.expiry_date,
+    p_purchase_price: Number(receipt.purchase_price),
+    p_selling_price: Number(receipt.selling_price),
+    p_quantity: Number(receipt.quantity),
+    p_minimum_stock: Number(receipt.minimum_stock),
+    p_supplier: receipt.supplier || null,
+    p_received_at: receipt.received_at,
+    p_notes: receipt.notes || null,
+  });
 
   if (error) throw error;
   return data;
@@ -61,3 +72,4 @@ export async function archiveMedicine(id) {
   if (error) throw error;
   return data;
 }
+
