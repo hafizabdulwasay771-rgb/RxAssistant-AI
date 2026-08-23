@@ -1,4 +1,5 @@
 import { validateReceipt } from "./receiving.js";
+import { resolveSupplierText } from "./suppliers.js";
 
 export const CSV_COLUMNS = [
   "name", "generic_name", "dosage_form", "strength", "therapeutic_class",
@@ -89,7 +90,7 @@ export function parseCsv(text) {
   });
 }
 
-export function validateImportRows(rows, existingBatchNumbers = new Set(), today = new Date().toISOString().slice(0, 10)) {
+export function validateImportRows(rows, existingBatchNumbers = new Set(), today = new Date().toISOString().slice(0, 10), suppliers = []) {
   const normalizedExisting = new Set([...existingBatchNumbers].map((batch) => String(batch).trim().toLowerCase()));
   const batchRows = new Map();
   rows.forEach(({ rowNumber, data }) => {
@@ -101,6 +102,9 @@ export function validateImportRows(rows, existingBatchNumbers = new Set(), today
     const normalized = { ...data, minimum_stock: data.minimum_stock || "0" };
     const errors = [];
     const warnings = [];
+    const supplierMatch = resolveSupplierText(data.supplier, suppliers);
+    if (supplierMatch.error) errors.push(supplierMatch.error);
+    if (supplierMatch.warning) warnings.push(supplierMatch.warning);
     const validationError = validateReceipt(normalized, today);
     if (validationError) errors.push(validationError);
     if (data.received_at === "") errors.push("Received date is required.");
@@ -108,7 +112,7 @@ export function validateImportRows(rows, existingBatchNumbers = new Set(), today
     if (batchKey && (batchRows.get(batchKey) || []).length > 1) errors.push("Batch number is duplicated in this CSV.");
     if (batchKey && normalizedExisting.has(batchKey)) errors.push("Batch already exists in this pharmacy.");
     if (!data.therapeutic_class) warnings.push("Therapeutic class is optional and was left blank.");
-    return { rowNumber, data: normalized, errors, warnings, valid: errors.length === 0 };
+    return { rowNumber, data: { ...normalized, supplier_id: supplierMatch.supplier_id || "" }, errors, warnings, valid: errors.length === 0 };
   });
 }
 

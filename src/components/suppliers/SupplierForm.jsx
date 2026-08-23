@@ -1,0 +1,12 @@
+import { useState } from 'react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import { validateSupplier } from '@/utils/suppliers';
+const blank = { name: '', contact_person: '', phone: '', email: '', address: '', city: '', notes: '' };
+export default function SupplierForm({ open, supplier, loading, onClose, onSubmit }) {
+  const [form, setForm] = useState(() => supplier || blank); const [error, setError] = useState('');
+  function update(event) { setForm((current) => ({ ...current, [event.target.name]: event.target.value })); setError(''); }
+  async function submit(event) { event.preventDefault(); const validationError = validateSupplier(form); if (validationError) { setError(validationError); return; } try { await onSubmit(form); } catch (submitError) { setError(submitError.message || 'Unable to save supplier.'); } }
+  return <Modal open={open} onClose={onClose} title={supplier ? 'Edit supplier' : 'Add supplier'} size="lg"><form onSubmit={submit} className="space-y-4">{error && <div role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</div>}<div className="grid gap-4 sm:grid-cols-2"><Input id="supplier-name" label="Supplier name *" name="name" value={form.name || ''} onChange={update} required /><Input id="supplier-contact" label="Contact person" name="contact_person" value={form.contact_person || ''} onChange={update} /><Input id="supplier-phone" label="Phone" name="phone" value={form.phone || ''} onChange={update} /><Input id="supplier-email" label="Email" name="email" type="email" value={form.email || ''} onChange={update} /><Input id="supplier-city" label="City" name="city" value={form.city || ''} onChange={update} /><Input id="supplier-address" label="Address" name="address" value={form.address || ''} onChange={update} /></div><div><label htmlFor="supplier-notes" className="block text-sm font-semibold text-slate-700">Notes</label><textarea id="supplier-notes" name="notes" value={form.notes || ''} onChange={update} rows="3" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" /></div><div className="flex justify-end gap-3 border-t border-slate-100 pt-5"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" loading={loading}>{supplier ? 'Save changes' : 'Add supplier'}</Button></div></form></Modal>;
+}

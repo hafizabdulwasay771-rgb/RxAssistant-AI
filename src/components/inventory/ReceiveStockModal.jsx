@@ -11,13 +11,24 @@ const initialForm = {
   received_at: today, notes: "",
 };
 
-function ReceiveStockModal({ open, onClose, onSubmit, loading }) {
+function ReceiveStockModal({ open, onClose, onSubmit, loading, suppliers = [], canManageSuppliers = false, onCreateSupplier }) {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
+  const [newSupplier, setNewSupplier] = useState(false);
+  const [supplierName, setSupplierName] = useState("");
 
   function update(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
     setError("");
+  }
+
+  async function createSupplier() {
+    if (!supplierName.trim()) { setError("Supplier name is required."); return; }
+    try {
+      const supplier = await onCreateSupplier({ name: supplierName.trim() });
+      setForm((current) => ({ ...current, supplier: supplier.name, supplier_id: supplier.id }));
+      setSupplierName(""); setNewSupplier(false); setError("");
+    } catch (createError) { setError(createError.message || "Unable to create supplier."); }
   }
 
   async function submit(event) {
@@ -50,6 +61,7 @@ function ReceiveStockModal({ open, onClose, onSubmit, loading }) {
     try {
       await onSubmit(form);
       setForm(initialForm);
+      setNewSupplier(false);
       setError("");
     } catch (submitError) {
       setError(submitError.message || "Unable to receive this batch.");
@@ -74,7 +86,7 @@ function ReceiveStockModal({ open, onClose, onSubmit, loading }) {
           <Input id="receive-minimum" label="Minimum stock" name="minimum_stock" type="number" min="0" step="1" value={form.minimum_stock} onChange={update} />
           <Input id="receive-purchase" label="Purchase price *" name="purchase_price" type="number" min="0" step="0.01" value={form.purchase_price} onChange={update} required />
           <Input id="receive-selling" label="Selling price *" name="selling_price" type="number" min="0" step="0.01" value={form.selling_price} onChange={update} required />
-          <Input id="receive-supplier" label="Supplier / reference" name="supplier" value={form.supplier} onChange={update} />
+          <div><label htmlFor="receive-supplier" className="block text-sm font-semibold text-slate-700">Supplier</label><select id="receive-supplier" name="supplier_id" value={form.supplier_id || ""} onChange={(event) => { const supplier = suppliers.find((item) => item.id === event.target.value); setForm((current) => ({ ...current, supplier_id: event.target.value, supplier: supplier?.name || "" })); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100"><option value="">No supplier selected</option>{suppliers.filter((supplier) => supplier.active).map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select>{canManageSuppliers && <button type="button" onClick={() => setNewSupplier((value) => !value)} className="mt-2 text-xs font-bold text-teal-700 hover:underline">{newSupplier ? "Cancel new supplier" : "+ Add new supplier"}</button>}{newSupplier && <div className="mt-2 flex gap-2"><input value={supplierName} onChange={(event) => setSupplierName(event.target.value)} placeholder="Supplier name" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm" /><Button type="button" variant="secondary" onClick={createSupplier}>Create</Button></div>}</div>
           <Input id="receive-date" label="Received date" name="received_at" type="date" value={form.received_at} onChange={update} max={today} required />
           <div className="sm:col-span-2"><label htmlFor="receive-notes" className="block text-sm font-semibold text-slate-700">Notes</label><textarea id="receive-notes" name="notes" value={form.notes} onChange={update} rows="3" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" /></div>
         </div>

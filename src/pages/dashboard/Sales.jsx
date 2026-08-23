@@ -1,278 +1,54 @@
-import { useEffect, useState } from "react";
-import { getMedicines } from "../../services/inventoryService";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
+import Loader from "@/components/ui/Loader";
+import { getMedicines } from "@/services/inventoryService";
+import { completeSale } from "@/services/salesService";
+import { friendlyError } from "@/utils/errors";
+import { buildFefoProducts } from "@/utils/fefo";
+import { formatCurrency, formatDate, getExpiryStatus } from "@/utils/medicine";
+
+const paymentMethods = ["Cash", "Card", "Bank Transfer", "Other"];
+
+function saleError(error) {
+  const message = error?.message || "";
+  if (/insufficient eligible stock/i.test(message)) return "Not enough valid stock is available. Expired or restricted batches were excluded.";
+  if (/selected medicine is no longer available/i.test(message)) return "This medicine is no longer available. Refresh the inventory and try again.";
+  return friendlyError(error, "Unable to complete the sale. No stock was deducted.");
+}
+
+function ProductCard({ product, onAdd }) {
+  const expiry = getExpiryStatus(product.earliestExpiryDate);
+  return <button type="button" onClick={() => onAdd(product)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-teal-300 hover:bg-teal-50/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-bold text-slate-800">{product.name}</p><p className="mt-1 text-sm text-slate-500">{[product.generic_name, product.strength, product.dosage_form].filter(Boolean).join(" • ") || "Medicine details unavailable"}</p></div><span className="shrink-0 rounded-lg bg-teal-50 px-2.5 py-1 text-sm font-extrabold text-teal-700">{formatCurrency(product.selling_price)}</span></div><div className="mt-3 flex flex-wrap items-center gap-2 text-xs"><Badge tone={product.quantity <= Number(product.minimum_stock || 0) ? "amber" : "green"}>{product.quantity} units available</Badge><span className={expiry.key === "critical" || expiry.key === "soon" ? "font-semibold text-amber-700" : "text-slate-500"}>Earliest expiry: {formatDate(product.earliestExpiryDate)}</span></div></button>;
+}
+
+function CartLine({ item, onChange, onRemove }) {
+  return <div className="border-b border-slate-100 py-4 last:border-b-0"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-bold text-slate-800">{item.name}</p><p className="mt-1 text-xs text-slate-500">{[item.strength, item.dosage_form].filter(Boolean).join(" • ")}</p></div><button type="button" onClick={() => onRemove(item.fefoKey)} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label={`Remove ${item.name}`}><Trash2 size={16} /></button></div><div className="mt-3 flex items-center justify-between gap-3"><div className="flex items-center gap-2 rounded-lg border border-slate-200 p-1"><button type="button" onClick={() => onChange(item.fefoKey, item.quantity - 1)} className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100" aria-label={`Decrease ${item.name}`}><Minus size={15} /></button><span className="w-7 text-center text-sm font-bold">{item.quantity}</span><button type="button" onClick={() => onChange(item.fefoKey, item.quantity + 1)} className="rounded-md bg-teal-600 p-1.5 text-white hover:bg-teal-700 disabled:opacity-40" disabled={item.quantity >= item.availableQuantity} aria-label={`Increase ${item.name}`}><Plus size={15} /></button></div><p className="font-extrabold text-slate-800">{formatCurrency(Number(item.selling_price) * item.quantity)}</p></div><p className="mt-2 text-xs text-slate-500">Safe stock: {item.availableQuantity} units. FEFO batches selected at checkout.</p></div>;
+}
+
+function Receipt({ receipt, onDismiss }) {
+  if (!receipt) return null;
+  return <Card className="border-emerald-200 bg-emerald-50/50 p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 size={22} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Sale completed</p><h3 className="mt-1 text-lg font-extrabold text-slate-900">{receipt.invoice_number}</h3></div><button type="button" onClick={onDismiss} className="text-xs font-bold text-slate-500 hover:text-slate-800">Dismiss</button></div><p className="mt-1 text-sm text-slate-600">{new Date().toLocaleString()} • {receipt.payment_method}</p><div className="mt-4 divide-y divide-emerald-100 rounded-xl border border-emerald-100 bg-white/70 px-3">{(receipt.allocations || []).map((allocation) => <div key={`${allocation.medicine_id}-${allocation.batch_number}`} className="flex flex-wrap justify-between gap-2 py-2 text-sm"><span>Batch {allocation.batch_number} × {allocation.quantity}</span><span className="font-semibold">{formatCurrency(Number(allocation.unit_price) * Number(allocation.quantity))}</span></div>)}</div><div className="mt-4 flex justify-between border-t border-emerald-200 pt-3 font-extrabold text-slate-900"><span>Total</span><span>{formatCurrency(receipt.total)}</span></div></div></div></Card>;
+}
 
 function Sales() {
-  const [medicines, setMedicines] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [cart, setCart] = useState([]);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getMedicines();
-        setMedicines(data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    load();
-  }, []);
-
-  function addToCart(medicine) {
-    const existing = cart.find(
-      (item) => item.id === medicine.id
-    );
-
-    if (existing) {
-      setCart(
-        cart.map((item) =>
-          item.id === medicine.id
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
-            : item
-        )
-      );
-    } else {
-      setCart([
-        ...cart,
-        {
-          ...medicine,
-          quantity: 1,
-        },
-      ]);
-    }
-  }
-function increaseQuantity(id) {
-
-  const cartItem = cart.find(
-    (item) => item.id === id
-  );
-
-  const stockItem = medicines.find(
-    (medicine) => medicine.id === id
-  );
-
-  if (cartItem.quantity >= stockItem.quantity) {
-    alert(`Only ${stockItem.quantity} units available in stock.`);
-    return;
-  }
-
-  setCart(
-    cart.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            quantity: item.quantity + 1,
-          }
-        : item
-    )
-  );
-
-}
-
-function decreaseQuantity(id) {
-  setCart(
-    cart
-      .map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: item.quantity - 1,
-            }
-          : item
-      )
-      .filter((item) => item.quantity > 0)
-  );
-}
-
-function removeFromCart(id) {
-  setCart(
-    cart.filter((item) => item.id !== id)
-  );
-}
-  return (
-    <div className="space-y-6">
-
-      <h1 className="text-3xl font-bold">
-        Sales (POS)
-      </h1>
-
-      <div className="grid grid-cols-3 gap-6">
-
-        {/* Left Side */}
-
-        <div className="col-span-2">
-
-          <div className="rounded-2xl border bg-white p-6 shadow">
-
-            <input
-              type="text"
-              placeholder="Search medicine..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border p-4"
-            />
-
-            <div className="mt-6 space-y-2">
-
-              {medicines
-                .filter((medicine) =>
-                  medicine.name
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase())
-                )
-                .slice(0, 8)
-                .map((medicine) => (
-
-                  <div
-                    key={medicine.id}
-                    onClick={() => addToCart(medicine)}
-                    className="flex items-center justify-between rounded-xl border p-4 hover:bg-slate-50 cursor-pointer"
-                  >
-
-                    <div>
-
-                      <h3 className="font-semibold">
-                        {medicine.name}
-                      </h3>
-
-                      <p className="text-sm text-slate-500">
-                        {medicine.dosage_form} • {medicine.therapeutic_class}
-                      </p>
-
-                    </div>
-
-                    <div className="font-semibold text-teal-600">
-                      Rs. {medicine.selling_price}
-                    </div>
-
-                  </div>
-
-                ))}
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Right Side */}
-
-        <div>
-
-          <div className="rounded-2xl border bg-white p-6 shadow">
-
-            <h2 className="text-xl font-bold">
-              Cart
-            </h2>
-
-            <div className="mt-6 space-y-3">
-
-              {cart.length === 0 ? (
-
-                <p className="text-slate-500">
-                  No medicines added.
-                </p>
-
-              ) : (
-
-                cart.map((item) => (
-
-                 <div
-  key={item.id}
-  className="flex items-center justify-between border-b pb-3"
->
-
-  <div>
-
-    <p className="font-semibold">
-      {item.name}
-    </p>
-
-    <p className="text-sm text-slate-500">
-      Rs. {item.selling_price}
-    </p>
-
-  </div>
-
-  <div className="flex items-center gap-2">
-
-    <button
-      onClick={() => decreaseQuantity(item.id)}
-      className="h-8 w-8 rounded-lg bg-slate-200 hover:bg-slate-300"
-    >
-      -
-    </button>
-
-    <span className="w-6 text-center font-semibold">
-      {item.quantity}
-    </span>
-
-    <button
-      onClick={() => increaseQuantity(item.id)}
-      className="h-8 w-8 rounded-lg bg-teal-600 text-white hover:bg-teal-700"
-    >
-      +
-    </button>
-
-  </div>
-
-  <div className="flex items-center gap-3">
-
-    <span className="font-semibold">
-      Rs. {item.selling_price * item.quantity}
-    </span>
-
-    <button
-      onClick={() => removeFromCart(item.id)}
-      className="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700"
-    >
-      🗑
-    </button>
-
-  </div>
-
-</div>
-
-                ))
-
-              )}
-
-            </div>
-
-            <hr className="my-6" />
-
-            <div className="flex justify-between">
-
-              <span>Total</span>
-
-              <span className="font-bold">
-                Rs.{" "}
-                {cart.reduce(
-                  (sum, item) =>
-                    sum + item.selling_price * item.quantity,
-                  0
-                )}
-              </span>
-
-            </div>
-
-            <button className="mt-6 w-full rounded-xl bg-teal-600 py-3 text-white font-semibold">
-              Complete Sale
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
+  const [medicines, setMedicines] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [query, setQuery] = useState(""); const [cart, setCart] = useState([]); const [customer, setCustomer] = useState({ name: "", phone: "" }); const [paymentMethod, setPaymentMethod] = useState("Cash"); const [processing, setProcessing] = useState(false); const [receipt, setReceipt] = useState(null);
+  async function load() { try { setLoading(true); setError(""); setMedicines(await getMedicines()); } catch (loadError) { setError(friendlyError(loadError, "Unable to load medicines for the counter.")); } finally { setLoading(false); } }
+  useEffect(() => { load(); }, []);
+  const products = useMemo(() => buildFefoProducts(medicines), [medicines]);
+  const visibleProducts = useMemo(() => products.filter((product) => [product.name, product.generic_name, product.strength, product.dosage_form].filter(Boolean).join(" ").toLowerCase().includes(query.toLowerCase())), [products, query]);
+  const subtotal = useMemo(() => cart.reduce((total, item) => total + Number(item.selling_price) * item.quantity, 0), [cart]);
+  function addToCart(product) { setReceipt(null); setCart((current) => { const existing = current.find((item) => item.fefoKey === product.fefoKey); if (existing) return current.map((item) => item.fefoKey === product.fefoKey ? { ...item, quantity: Math.min(item.quantity + 1, product.quantity) } : item); return [...current, { ...product, availableQuantity: product.quantity, quantity: 1 }]; }); }
+  function updateQuantity(key, quantity) { setCart((current) => current.map((item) => item.fefoKey === key ? { ...item, quantity: Math.max(0, Math.min(quantity, item.availableQuantity)) } : item).filter((item) => item.quantity > 0)); }
+  function removeLine(key) { setCart((current) => current.filter((item) => item.fefoKey !== key)); }
+  async function checkout(event) { event.preventDefault(); if (!cart.length || processing) return; try { setProcessing(true); const result = await completeSale({ customerName: customer.name, customerPhone: customer.phone, paymentMethod, items: cart }); setReceipt({ ...result, payment_method: paymentMethod }); setCart([]); setCustomer({ name: "", phone: "" }); await load(); toast.success("Sale completed and stock updated safely."); } catch (checkoutError) { toast.error(saleError(checkoutError)); } finally { setProcessing(false); } }
+  if (loading) return <Loader label="Loading pharmacy counter…" />;
+  if (error) return <div className="space-y-4"><div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-800">{error}</div><Button onClick={load}>Try again</Button></div>;
+  return <div className="space-y-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Pharmacy counter</p><h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Sales / POS</h2><p className="mt-1 text-sm text-slate-500">Find a medicine, confirm safe stock, and let the backend dispense by FEFO.</p></div><div className="rounded-xl bg-teal-50 px-4 py-3 text-right"><p className="text-xs font-bold uppercase tracking-wide text-teal-700">Cart</p><p className="text-xl font-extrabold text-teal-900">{cart.reduce((total, item) => total + item.quantity, 0)} units</p></div></div><Receipt receipt={receipt} onDismiss={() => setReceipt(null)} /><div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_390px]"><Card className="p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-extrabold text-slate-900">Find medicine</h3><p className="mt-1 text-sm text-slate-500">Expired batches are excluded from the available stock shown here.</p></div><Badge tone="green">{products.length} safe products</Badge></div><label className="relative mt-5 block"><span className="sr-only">Search medicine</span><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-3 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" placeholder="Name, generic, strength, or dosage form" /></label><div className="mt-4 space-y-3">{visibleProducts.length ? visibleProducts.map((product) => <ProductCard key={product.fefoKey} product={product} onAdd={addToCart} />) : <EmptyState icon={Search} title="No valid medicine found" description={query ? "Try another name, generic, strength, or dosage form." : "Receive valid, non-expired stock before starting a sale."} />}</div></Card><Card className="p-5 xl:sticky xl:top-6"><div className="flex items-center gap-2"><ShoppingCart size={19} className="text-teal-700" /><h3 className="text-lg font-extrabold text-slate-900">Current sale</h3></div>{cart.length === 0 ? <div className="py-10"><EmptyState icon={ShoppingCart} title="Cart is empty" description="Select a medicine to begin the counter sale." /></div> : <><div className="mt-2 divide-y divide-slate-100">{cart.map((item) => <CartLine key={item.fefoKey} item={item} onChange={updateQuantity} onRemove={removeLine} />)}</div><form onSubmit={checkout} className="mt-4 space-y-4 border-t border-slate-100 pt-4"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1"><label className="text-sm font-semibold text-slate-700">Customer name <input value={customer.name} onChange={(event) => setCustomer((current) => ({ ...current, name: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal outline-none focus:border-teal-500" placeholder="Optional" /></label><label className="text-sm font-semibold text-slate-700">Phone <input value={customer.phone} onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal outline-none focus:border-teal-500" placeholder="Optional" /></label></div><label className="block text-sm font-semibold text-slate-700">Payment method<select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-normal outline-none focus:border-teal-500">{paymentMethods.map((method) => <option key={method}>{method}</option>)}</select></label><div className="rounded-xl bg-slate-50 p-4"><div className="flex justify-between text-sm text-slate-600"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div><div className="mt-2 flex justify-between text-lg font-extrabold text-slate-900"><span>Total</span><span>{formatCurrency(subtotal)}</span></div></div><div className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-800"><AlertTriangle size={15} className="mt-0.5 shrink-0" />The server will re-check stock and apply earliest-expiry batches during checkout.</div><Button type="submit" fullWidth size="lg" loading={processing} disabled={!cart.length}>{processing ? "Processing sale…" : "Complete sale"}</Button></form></>}</Card></div></div>;
 }
 
 export default Sales;
-
-

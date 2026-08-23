@@ -11,7 +11,8 @@ test("CSV parser accepts valid rows and optional therapeutic class", () => {
   assert.equal(result.length, 1);
   assert.equal(result[0].valid, true);
   assert.equal(result[0].data.therapeutic_class, "");
-  assert.equal(result[0].warnings.length, 1);
+  assert.equal(result[0].warnings.length, 2);
+  assert.ok(result[0].warnings.some((warning) => /legacy text/i.test(warning)));
 });
 
 test("CSV parser rejects missing and duplicate headers", () => {

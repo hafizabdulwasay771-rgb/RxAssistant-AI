@@ -19,6 +19,7 @@ const SalesHistory = lazy(() => import("@/pages/dashboard/SalesHistory"));
 const Analytics = lazy(() => import("@/pages/dashboard/Analytics"));
 const Reports = lazy(() => import("@/pages/dashboard/Reports"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
+const Suppliers = lazy(() => import("@/pages/dashboard/Suppliers"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/sales/history" element={<SalesHistory />} />
           <Route path="/analytics" element={<Analytics />} />

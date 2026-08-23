@@ -2,7 +2,8 @@ import { supabase } from "@/lib/supabase";
 
 const editableFields = [
   "name", "generic_name", "dosage_form", "strength", "therapeutic_class",
-  "manufacturer", "selling_price", "minimum_stock", "supplier", "status",
+    "manufacturer", "selling_price", "minimum_stock", "supplier", "status",
+  "supplier_id",
 ];
 
 function pickEditable(values) {
@@ -43,6 +44,7 @@ export async function receiveStock(receipt) {
     p_supplier: receipt.supplier || null,
     p_received_at: receipt.received_at,
     p_notes: receipt.notes || null,
+    p_supplier_id: receipt.supplier_id || null,
   });
 
   if (error) throw error;

@@ -21,7 +21,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url);
 }
 
-function CSVImportModal({ open, onClose, onImport, existingBatchNumbers }) {
+function CSVImportModal({ open, onClose, onImport, existingBatchNumbers, suppliers = [] }) {
   const [step, setStep] = useState("upload");
   const [validation, setValidation] = useState([]);
   const [fileName, setFileName] = useState("");
@@ -59,7 +59,7 @@ function CSVImportModal({ open, onClose, onImport, existingBatchNumbers }) {
     }
     try {
       const rows = parseCsv(await file.text());
-      setValidation(validateImportRows(rows, existingBatchNumbers));
+      setValidation(validateImportRows(rows, existingBatchNumbers, new Date().toISOString().slice(0, 10), suppliers));
       setFileName(file.name);
       setError("");
       setStep("preview");
