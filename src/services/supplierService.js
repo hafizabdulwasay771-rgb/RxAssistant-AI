@@ -3,9 +3,10 @@ import { supabase } from '@/lib/supabase';
 const fields = ['name', 'contact_person', 'phone', 'email', 'address', 'city', 'notes', 'active'];
 function pick(values) { return Object.fromEntries(fields.filter((field) => values[field] !== undefined).map((field) => [field, values[field] === '' ? null : values[field]])); }
 
-export async function getSuppliers({ includeInactive = true } = {}) {
+export async function getSuppliers({ includeInactive = true, pharmacyId } = {}) {
   let query = supabase.from('suppliers').select('*').order('name');
   if (!includeInactive) query = query.eq('active', true);
+  if (pharmacyId) query = query.eq('pharmacy_id', pharmacyId);
   const { data, error } = await query;
   if (error) throw error;
   return data || [];

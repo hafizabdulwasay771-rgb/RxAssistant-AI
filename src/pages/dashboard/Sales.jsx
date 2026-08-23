@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import Loader from "@/components/ui/Loader";
+import { getCurrentProfile } from "@/services/appService";
 import { getMedicines } from "@/services/inventoryService";
 import { completeSale } from "@/services/salesService";
 import { friendlyError } from "@/utils/errors";
@@ -37,7 +38,7 @@ function Receipt({ receipt, onDismiss }) {
 
 function Sales() {
   const [medicines, setMedicines] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [query, setQuery] = useState(""); const [cart, setCart] = useState([]); const [customer, setCustomer] = useState({ name: "", phone: "" }); const [paymentMethod, setPaymentMethod] = useState("Cash"); const [processing, setProcessing] = useState(false); const [receipt, setReceipt] = useState(null);
-  async function load() { try { setLoading(true); setError(""); setMedicines(await getMedicines()); } catch (loadError) { setError(friendlyError(loadError, "Unable to load medicines for the counter.")); } finally { setLoading(false); } }
+  async function load() { try { setLoading(true); setError(""); const profile = await getCurrentProfile(); setMedicines(await getMedicines({ pharmacyId: profile.pharmacy_id })); } catch (loadError) { setError(friendlyError(loadError, "Unable to load medicines for the counter.")); } finally { setLoading(false); } }
   useEffect(() => { load(); }, []);
   const products = useMemo(() => buildFefoProducts(medicines), [medicines]);
   const visibleProducts = useMemo(() => products.filter((product) => [product.name, product.generic_name, product.strength, product.dosage_form].filter(Boolean).join(" ").toLowerCase().includes(query.toLowerCase())), [products, query]);

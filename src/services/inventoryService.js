@@ -14,13 +14,14 @@ function pickEditable(values) {
   );
 }
 
-export async function getMedicines({ includeArchived = false } = {}) {
+export async function getMedicines({ includeArchived = false, pharmacyId } = {}) {
   let query = supabase
     .from("medicines")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (!includeArchived) query = query.neq("status", "archived");
+  if (pharmacyId) query = query.eq("pharmacy_id", pharmacyId);
 
   const { data, error } = await query;
   if (error) throw error;

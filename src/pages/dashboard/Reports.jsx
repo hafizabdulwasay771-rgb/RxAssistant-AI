@@ -31,7 +31,7 @@ function Reports() {
       const profile = await getCurrentProfile();
       const [settings, medicines, sales] = await Promise.all([
         getSettings(profile.pharmacy_id),
-        getMedicines(),
+        getMedicines({ pharmacyId: profile.pharmacy_id }),
         getSales({ startDate: dates.start, endDate: dates.end }),
       ]);
       setSource({ sales, medicines, warningDays: settings?.expiry_warning_days || 30 });
