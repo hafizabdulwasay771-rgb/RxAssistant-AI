@@ -49,6 +49,20 @@ export async function receiveStock(receipt) {
   return data;
 }
 
+export async function importStock(receipts) {
+  const { data, error } = await supabase.rpc("receive_stock_bulk", {
+    p_rows: receipts.map((receipt) => ({
+      ...receipt,
+      purchase_price: Number(receipt.purchase_price),
+      selling_price: Number(receipt.selling_price),
+      quantity: Number(receipt.quantity),
+      minimum_stock: Number(receipt.minimum_stock || 0),
+    })),
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function updateMedicine(id, updates) {
   const { data, error } = await supabase
     .from("medicines")
