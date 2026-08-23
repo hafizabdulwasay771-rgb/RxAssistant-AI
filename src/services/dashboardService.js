@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { getMedicineStatus, startOfDay } from "@/utils/medicine";
+import { getMedicineConditions, getMedicineStatus, startOfDay } from "@/utils/medicine";
 
 function isoDay(date) {
   return date.toISOString().slice(0, 10);
@@ -51,7 +51,7 @@ export function buildRevenueTrend(sales, days = 7) {
 export function buildDashboardSnapshot({ medicines, sales, warningDays = 30 }) {
   const today = startOfDay();
   const todaySales = sales.filter((sale) => new Date(sale.created_at) >= today);
-  const statused = medicines.map((medicine) => ({ medicine, status: getMedicineStatus(medicine, warningDays) }));
+  const statused = medicines.map((medicine) => ({ medicine, status: getMedicineStatus(medicine, warningDays), conditions: getMedicineConditions(medicine, warningDays) }));
   const inventoryValue = medicines.reduce((total, item) => total + (Number(item.purchase_price) || 0) * (Number(item.quantity) || 0), 0);
 
   return {
@@ -59,13 +59,13 @@ export function buildDashboardSnapshot({ medicines, sales, warningDays = 30 }) {
       todayRevenue: todaySales.reduce((sum, sale) => sum + Number(sale.total || 0), 0),
       todaySales: todaySales.length,
       medicineCount: medicines.length,
-      lowStock: statused.filter(({ status }) => ["low_stock", "out_of_stock"].includes(status.key)).length,
-      expiring: statused.filter(({ status }) => ["expiring", "expired"].includes(status.key)).length,
+      lowStock: statused.filter(({ conditions }) => conditions.lowStock).length,
+      expiring: statused.filter(({ conditions }) => conditions.expiring || conditions.expired).length,
       inventoryValue,
     },
     chart: buildRevenueTrend(sales, 7),
-    lowStock: statused.filter(({ status }) => ["low_stock", "out_of_stock"].includes(status.key)).slice(0, 6),
-    expiring: statused.filter(({ status }) => ["expiring", "expired"].includes(status.key)).slice(0, 6),
+    lowStock: statused.filter(({ conditions }) => conditions.lowStock).slice(0, 6),
+    expiring: statused.filter(({ conditions }) => conditions.expiring || conditions.expired).slice(0, 6),
     recentSales: [...sales].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5),
   };
 }

@@ -26,16 +26,29 @@ export function getExpiryStatus(expiryDate, warningDays = 30, now = new Date()) 
   return { key: "safe", label: "Safe", days };
 }
 
-export function getMedicineStatus(medicine, warningDays = 30) {
+export function getMedicineConditions(medicine, warningDays = 30) {
   const expiry = getExpiryStatus(medicine.expiry_date, warningDays);
   const quantity = Number(medicine.quantity) || 0;
   const minimum = Number(medicine.minimum_stock) || 0;
-  if (medicine.status === "archived") return { key: "archived", label: "Archived" };
-  if (expiry.key === "expired") return { key: "expired", label: "Expired" };
-  if (quantity <= 0) return { key: "out_of_stock", label: "Out of stock" };
-  if (quantity <= minimum) return { key: "low_stock", label: "Low stock" };
-  if (["critical", "soon", "watch"].includes(expiry.key)) return { key: "expiring", label: "Expiring soon" };
-  return { key: "in_stock", label: "In stock" };
+
+  return {
+    archived: medicine.status === "archived",
+    expired: expiry.key === "expired",
+    expiring: ["critical", "soon", "watch"].includes(expiry.key),
+    lowStock: quantity <= minimum,
+    outOfStock: quantity <= 0,
+    expiry,
+  };
+}
+
+export function getMedicineStatus(medicine, warningDays = 30) {
+  const conditions = getMedicineConditions(medicine, warningDays);
+  if (conditions.archived) return { key: "archived", label: "Archived", conditions };
+  if (conditions.expired) return { key: "expired", label: "Expired", conditions };
+  if (conditions.outOfStock) return { key: "out_of_stock", label: "Out of stock", conditions };
+  if (conditions.lowStock) return { key: "low_stock", label: "Low stock", conditions };
+  if (conditions.expiring) return { key: "expiring", label: "Expiring soon", conditions };
+  return { key: "in_stock", label: "In stock", conditions };
 }
 
 export function formatDate(value) {
