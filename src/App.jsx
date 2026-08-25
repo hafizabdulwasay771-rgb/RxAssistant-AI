@@ -21,6 +21,7 @@ const Reports = lazy(() => import("@/pages/dashboard/Reports"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 const Suppliers = lazy(() => import("@/pages/dashboard/Suppliers"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const Checkout = lazy(() => import("@/pages/checkout/Checkout"));
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
+        <Route element={<ProtectedRoute><PublicLayout /></ProtectedRoute>}><Route path="/checkout" element={<Checkout />} /></Route>
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
